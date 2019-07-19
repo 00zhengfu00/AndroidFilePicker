@@ -10,7 +10,9 @@ import android.widget.Button
 import android.widget.Toast
 import me.rosuh.filepicker.bean.FileItemBeanImpl
 import me.rosuh.filepicker.config.AbstractFileFilter
+import me.rosuh.filepicker.config.AbstractFileType
 import me.rosuh.filepicker.config.FilePickerManager
+import me.rosuh.filepicker.filetype.FileType
 import me.rosuh.filepicker.filetype.RasterImageFileType
 
 
@@ -37,6 +39,28 @@ class SampleActivity : AppCompatActivity() {
         }
     }
 
+    /**
+     * 自定义音频文件过滤器
+     * custom audio file filter
+     */
+    private val audioFileFilter = object : AbstractFileFilter() {
+        override fun doFilter(listData: ArrayList<FileItemBeanImpl>): ArrayList<FileItemBeanImpl> {
+            val iterator = listData.iterator()
+            while (iterator.hasNext()) {
+                val item = iterator.next()
+                // 如果是文件夹则略过
+                // Skip it if it's a folder
+                if (item.isDir) continue
+                // 判断文件类型是否是音频
+                // Determine whether the file type is an audio
+                if (item.fileType !is EnhanceAudioType) {
+                    iterator.remove()
+                }
+            }
+            return listData
+        }
+    }
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.demo_activity_main)
@@ -47,6 +71,7 @@ class SampleActivity : AppCompatActivity() {
         val singleBtn = findViewById<Button>(R.id.btn_single)
         val onlyDirBtn = findViewById<Button>(R.id.btn_only_dir)
         val onlyImgBtn = findViewById<Button>(R.id.btn_only_image)
+        val onlyAudioBtn = findViewById<Button>(R.id.btn_only_audio)
         val displayHiddenBtn = findViewById<Button>(R.id.btn_display_hidden)
         val singleFileBtn = findViewById<Button>(R.id.btn_single_file)
         val singleDirBtn = findViewById<Button>(R.id.btn_single_dir)
@@ -91,6 +116,25 @@ class SampleActivity : AppCompatActivity() {
                     override fun doFilter(listData: ArrayList<FileItemBeanImpl>): ArrayList<FileItemBeanImpl> {
                         return ArrayList(listData.filter { item ->
                             ((item.isDir) || (item.fileType is RasterImageFileType))
+                        })
+                    }
+                })
+                .forResult(FilePickerManager.REQUEST_CODE)
+        }
+
+        // 只展示图片
+        onlyAudioBtn.setOnClickListener {
+            FilePickerManager
+                .from(this@SampleActivity)
+                .fileType(object : AbstractFileType(){
+                    override fun fillFileType(itemBeanImpl: FileItemBeanImpl): FileItemBeanImpl {
+
+                    }
+                })
+                .filter(object : AbstractFileFilter() {
+                    override fun doFilter(listData: ArrayList<FileItemBeanImpl>): ArrayList<FileItemBeanImpl> {
+                        return ArrayList(listData.filter { item ->
+                            ((item.isDir) || (item.fileType is EnhanceAudioType))
                         })
                     }
                 })
